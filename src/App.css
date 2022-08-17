@@ -52,6 +52,11 @@
   font-weight: bold;
   color: white;
 }
+.cta-position {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+}
 
 .connect-wallet-button {
   background: -webkit-linear-gradient(left, #60c657, #35aee2);

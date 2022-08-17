@@ -33,8 +33,11 @@ const App = () => {
   // State
   const [walletAddress, setWalletAddress] = useState(null);
   const [inputValue, setInputValue] = useState("");
+  const [inputFiltValue, setInputFiltValue] = useState("");
   const [recAddress, setRecAddress] = useState("");
   const [docList, setDocList] = useState([]);
+  const [filterList, setFilterList] = useState([]);
+  const [searchButton, setSearchButton] = useState(null);
 
   // Actions
   const checkIfWalletIsConnected = async () => {
@@ -107,6 +110,10 @@ const App = () => {
     const { value } = event.target;
     setInputValue(value);
   };
+  const onInputFiltChange = (event) => {
+    const { value } = event.target;
+    setInputFiltValue(value);
+  };
   const onRecAddressChange = (event) => {
     const { value } = event.target;
     setRecAddress(value);
@@ -157,9 +164,29 @@ const App = () => {
       setDocList(null);
     }
   };
+  const search = async () => {
+    setSearchButton(true);
+    console.log(searchButton);
+  };
+  const exitSearch = async () => {
+    setSearchButton(false);
+    console.log(searchButton);
+  };
+  const filterDoc = async () => {
+    if (inputFiltValue.length === 0) {
+      console.log("No doc link given!");
+      return;
+    }
+    setInputFiltValue("");
+    console.log("Doc link:", inputFiltValue);
+    let dupdocList = docList;
+    let filt = dupdocList.filter((it) => it.docLink.includes(inputFiltValue));
+    setFilterList(filt);
+  };
 
   const renderNotConnectedContainer = () => (
     <button
+      type="submit"
       className="cta-button connect-wallet-button"
       onClick={connectWallet}
     >
@@ -183,54 +210,127 @@ const App = () => {
     }
     // Otherwise, we're good! Account exists. User can submit GIFs.
     else {
-      return (
-        <div className="connected-container">
-          <h2>Submit document link and receiver address</h2>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              sendDoc();
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Enter doc link!"
-              value={inputValue}
-              onChange={onInputChange}
-            />
-            <input
-              type="text"
-              placeholder="Enter receiver address!"
-              value={recAddress}
-              onChange={onRecAddressChange}
-            />
-            <button type="submit" className="cta-button submit-gif-button">
-              Submit
+      if (!searchButton) {
+        return (
+          <>
+            <button
+              type="submit"
+              className="cta-button cta-position submit-gif-button"
+              onClick={search}
+            >
+              Verify a Doc
             </button>
-          </form>
-          <div className="gif-grid">
-            {/* We use index as the key instead, also, the src is now item.gifLink */}
-            {docList.map((item, index) => (
-              <div className="gif-item" key={index}>
-                <img src={item.docLink} />
 
-                <p>
-                  <span>Issuer : </span>
-                  {item.userAddress.toString()}
-                </p>
-                <p>
-                  <span>Receiver: </span>
-                  {item.destAddr.toString()}
-                </p>
-                <p>
-                  <span>Doc Link: </span>
-                  {item.docLink}
-                </p>
+            <div className="connected-container">
+              <h2>Submit document link and receiver address</h2>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  sendDoc();
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Enter doc link!"
+                  value={inputValue}
+                  onChange={onInputChange}
+                />
+                <input
+                  type="text"
+                  placeholder="Enter receiver address!"
+                  value={recAddress}
+                  onChange={onRecAddressChange}
+                />
+                <button type="submit" className="cta-button submit-gif-button">
+                  Submit
+                </button>
+              </form>
+              <div className="gif-grid">
+                {/* We use index as the key instead, also, the src is now item.gifLink */}
+                {docList.map((item, index) => (
+                  <div className="gif-item" key={index}>
+                    <img src={item.docLink} />
+
+                    <p>
+                      <span>Issuer : </span>
+                      {item.userAddress.toString()}
+                    </p>
+                    <p>
+                      <span>Receiver: </span>
+                      {item.destAddr.toString()}
+                    </p>
+                    <p>
+                      <span>Doc Link: </span>
+                      {item.docLink}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      );
+            </div>
+          </>
+        );
+      } else {
+        return (
+          <>
+            <button
+              type="submit"
+              className="cta-button cta-position submit-gif-button"
+              onClick={exitSearch}
+            >
+              Back
+            </button>
+
+            <div className="connected-container">
+              <h2>Search document by link </h2>
+              <form>
+                <input
+                  type="text"
+                  placeholder="Enter doc link!"
+                  value={inputFiltValue}
+                  onChange={onInputFiltChange}
+                />
+                {/* <input
+                  type="text"
+                  placeholder="Enter receiver address!"
+                  value={recAddress}
+                  onChange={onRecAddressChange}
+                /> */}
+                <button
+                  type="submit"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    filterDoc();
+                  }}
+                  className="cta-button submit-gif-button"
+                >
+                  Search
+                </button>
+              </form>
+              <div className="gif-grid">
+                {/* We use index as the key instead, also, the src is now item.gifLink */}
+                {filterList.map((item, index) => (
+                  <div className="gif-item" key={index}>
+                    <img src={item.docLink} />
+
+                    <p>
+                      <span>Issuer : </span>
+                      {item.userAddress.toString()}
+                    </p>
+                    <p>
+                      <span>Receiver: </span>
+                      {item.destAddr.toString()}
+                    </p>
+                    <p>
+                      <span>Doc Link: </span>
+                      {item.docLink}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        );
+      }
     }
   };
 
@@ -260,11 +360,12 @@ const App = () => {
   return (
     <div className="App">
       {/* This was solely added for some styling fanciness */}
+
       <div className={walletAddress ? "authed-container" : "container"}>
         <div className="header-container">
           <p className="header">PinDown 📌</p>
           <p className="sub-text">
-            Your solana based document certifier. View the legit sorce and
+            Your Solana based document certifier. View the legit source and
             destination of any certificate✨
           </p>
           {/* Add the condition to show this only if we don't have a wallet address */}
